@@ -1,7 +1,0 @@
-com\pgmerxw\eatwhat\EatWhatApplication.class
-com\pgmerxw\eatwhat\mapper\PrizeMapper.class
-com\pgmerxw\eatwhat\controller\WheelController.class
-com\pgmerxw\eatwhat\model\Prize.class
-com\pgmerxw\eatwhat\service\impl\WheelServiceImpl.class
-com\pgmerxw\eatwhat\service\WheelService.class
-com\pgmerxw\eatwhat\config\WebConfig.class
