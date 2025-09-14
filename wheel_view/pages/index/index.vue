@@ -1,5 +1,13 @@
 <template>
 	<view class="container">
+		<view v-if="showPrizeModal" class="mask"></view>
+		<view v-if="showPrizeModal" class="modal">
+			<view class="modal-content">
+				<text class="modal-message">{{ todayPrize }}</text>
+				<button class="modal-button" @click="closePrizeModal">确定</button>
+			</view>
+		</view>
+
 		<view class="wheel-wrapper">
 			<!-- Canvas 转盘 -->
 			<canvas canvas-id="wheelCanvas" class="wheel-canvas"
@@ -10,7 +18,7 @@
 		</view>
 
 		<!-- 开始抽奖按钮 -->
-		<button @click="startSpin" :disabled="isSpinning" class="spin-button">
+		<button @click="startSpin" :disabled="isSpinning" v-if="showSpin"  class="spin-button">
 			{{ isSpinning ? '转动中...' : '开始转动' }}
 		</button>
 
@@ -39,15 +47,16 @@
 				//结果文本
 				resultText: '',
 				resultPrize: '',
+
+				//今天吃了啥
+				todayPrize: '',
+				showPrizeModal: false,
+				showSpin: true
 			};
 		},
 
 		mounted() {
 			this.loadWheelConfig();
-			// 页面加载后初始化 Canvas 并绘制转盘
-			// this.$nextTick(() => {
-			// 	this.initCanvas();
-			// });
 		},
 
 		beforeDestroy() {
@@ -64,7 +73,6 @@
 						url: 'http://localhost:8080/api/wheel/getPrizeList',
 						method: 'GET'
 					});
-					console.log(res);
 					if (res.statusCode === 200 && res.data) {
 						const prize = res.data;
 						this.prizes = prize.map(item => item.name);
@@ -78,8 +86,28 @@
 					})
 				}
 				this.initCanvas();
+				this.getTodayPriz();
 			},
 
+			async getTodayPriz() {
+				try {
+					const res = await uni.request({
+						url: 'http://localhost:8080/api/wheel/getTodayPrize',
+						method: 'GET'
+					});
+					if (res.statusCode === 200 && res.data) {
+						this.todayPrize = res.data;
+						this.resultText = "今天吃："+this.todayPrize+"不能再变了！";
+						this.showSpin = false;
+					}
+				} catch (e) {
+					console.error('数据加载失败', e);
+					uni.showToast({
+						title: '数据加载失败',
+						icon: 'none'
+					})
+				}
+			},
 			// 🛠 初始化 Canvas，获取绘图上下文并绘制转盘
 			initCanvas() {
 				this.ctx = uni.createCanvasContext('wheelCanvas', this);
@@ -156,6 +184,7 @@
 			async saveEatWhat() {
 				try {
 					const res = await uni.request({
+						//url: 'http://175.178.2.14:8080/api/wheel/saveEatWhat',
 						url: 'http://localhost:8080/api/wheel/saveEatWhat',
 						method: 'POST',
 						data: {
@@ -165,7 +194,6 @@
 							'Content-Type': 'application/json'
 						}
 					});
-					console.log(res);
 					if (res.statusCode === 200 && res.data) {
 						console.log('保存吃了啥成功！');
 					}
@@ -205,11 +233,16 @@
 
 				step();
 			},
+			// 关闭弹窗
+			closePrizeModal() {
+				this.showPrizeModal = false;
+			}
 		},
 	};
 </script>
 
 <style scoped>
+	/* 转盘 */
 	.container {
 		display: flex;
 		flex-direction: column;
@@ -260,5 +293,45 @@
 		font-weight: bold;
 		color: #333;
 		margin-top: 20px;
+	}
+
+	/* 弹窗 */
+	.mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.6);
+		z-index: 999;
+	}
+
+	.modal {
+		position: fixed;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		background-color: #ffffff;
+		padding: 40rpx;
+		border-radius: 16rpx;
+		z-index: 1000;
+		width: 600rpx;
+		text-align: center;
+		box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+	}
+
+	.modal-message {
+		font-size: 32rpx;
+		color: #333333;
+		margin-bottom: 40rpx;
+	}
+
+	.modal-button {
+		background-color: #007aff;
+		color: #ffffff;
+		border: none;
+		border-radius: 8rpx;
+		padding: 20rpx 40rpx;
+		font-size: 32rpx;
 	}
 </style>
