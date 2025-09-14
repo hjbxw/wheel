@@ -5,8 +5,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 
-@SpringBootApplication
+
 @MapperScan("com.pgmerxw.eatwhat.mapper")
+@SpringBootApplication
 public class EatWhatApplication {
 
     public static void main(String[] args) {
